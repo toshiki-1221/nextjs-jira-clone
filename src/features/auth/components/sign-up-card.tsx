@@ -24,25 +24,21 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
-const formSchema = z.object({
-  name: z.string().trim().min(1, { message: 'お名前は必須です。' }),
-  email: z.email({ message: 'メールアドレスが不正です。' }),
-  password: z
-    .string()
-    .min(8, { message: 'パスワードは8文字以上で入力してください。' }),
-})
+import { useRegister } from '../api/use-register'
+import { registerSchema } from '../schemas'
 
 const SignUpcard = () => {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const { mutate } = useRegister()
+  const form = useForm<z.infer<typeof registerSchema>>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       name: '',
       email: '',
       password: '',
     },
   })
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log(data)
+  const onSubmit = (data: z.infer<typeof registerSchema>) => {
+    mutate(data)
   }
   return (
     <Card className="w-full h-full md:w-[487px] border-none shadow-none">
