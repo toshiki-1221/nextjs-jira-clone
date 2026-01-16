@@ -18,8 +18,8 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
-import { useLogin } from '../api/use-login'
-import { loginSchema } from '../schemas'
+import { useLogin } from '../hooks/use-login'
+import { loginSchema } from '../types/schemas'
 
 const SignInCard = () => {
   const { mutate } = useLogin()

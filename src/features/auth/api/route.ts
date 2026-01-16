@@ -1,7 +1,7 @@
 import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 
-import { loginSchema, registerSchema } from '../schemas'
+import { loginSchema, registerSchema } from '../types/schemas'
 
 const app = new Hono()
   .post('/login', zValidator('json', loginSchema), c => {
