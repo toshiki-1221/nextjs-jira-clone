@@ -1,4 +1,8 @@
+'use client'
+
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -23,12 +27,18 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { toast } from 'sonner'
 
 import { useRegister } from '../hooks/use-register'
+import { useSocialSignIn } from '../hooks/use-social-sign-in'
 import { registerSchema } from '../types/schemas'
 
 const SignUpcard = () => {
-  const { mutate } = useRegister()
+  const { mutateAsync } = useRegister()
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const { signInWithProvider, isGoogleLoading, isGithubLoading } = useSocialSignIn()
+
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -37,9 +47,20 @@ const SignUpcard = () => {
       password: '',
     },
   })
-  const onSubmit = (data: z.infer<typeof registerSchema>) => {
-    mutate(data)
+  const onSubmit = async (data: z.infer<typeof registerSchema>) => {
+    setIsLoading(true)
+    try {
+      await mutateAsync(data)
+      toast.success('アカウント登録に成功しました。')
+      router.push('/')
+      router.refresh()
+    } catch (error) {
+      // エラーはフック内で既にトースト表示済みのため空    
+    } finally {
+      setIsLoading(false)
+    }
   }
+
   return (
     <Card className="w-full h-full md:w-[487px] border-none shadow-none">
       <CardHeader className="flex flex-col items-center justify-center text-center p-7">
@@ -113,12 +134,12 @@ const SignUpcard = () => {
               )}
             />
             <Button
-              disabled={false}
+              disabled={isLoading}
               size="lg"
               className="w-full "
               type="submit"
             >
-              アカウント登録
+              {isLoading ? '登録中...' : 'アカウント登録'}
             </Button>
           </form>
         </Form>
@@ -128,22 +149,24 @@ const SignUpcard = () => {
       </div>
       <CardContent className="p-7 flex flex-col gap-y-4">
         <Button
-          disabled={false}
+          disabled={isGoogleLoading || isGithubLoading}
           variant="secondary"
           size="lg"
           className="w-full"
+          onClick={() => signInWithProvider('google')}
         >
           <FcGoogle className="mr-2 size-5" />
-          Googleでログイン
+          {isGoogleLoading ? 'ログイン中...' : 'Googleでログイン'}
         </Button>
         <Button
-          disabled={false}
+          disabled={isGoogleLoading || isGithubLoading}
           variant="secondary"
           size="lg"
           className="w-full"
+          onClick={() => signInWithProvider('github')}
         >
           <FaGithub className="mr-2 size-5" />
-          Githubでログイン
+          {isGithubLoading ? 'ログイン中...' : 'Githubでログイン'}
         </Button>
       </CardContent>
       <div className="px-7">
