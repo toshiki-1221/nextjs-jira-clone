@@ -1,17 +1,29 @@
 import { useMutation } from '@tanstack/react-query'
-import { InferRequestType, InferResponseType } from 'hono'
+import { z } from 'zod'
 
-import { client } from '@/lib/rpc'
+import { loginSchema } from '../types/schemas'
 
-type Responsetype = InferResponseType<(typeof client.api.auth.login)['$post']>
-type RequestType = InferRequestType<
-  (typeof client.api.auth.login)['$post']
->['json']
+type RequestType = z.infer<typeof loginSchema>
+type ResponseType = {
+  email: string
+  password: string
+}
 
 export const useLogin = () => {
-  const mutation = useMutation<Responsetype, Error, RequestType>({
-    mutationFn: async json => {
-      const response = await client.api.auth.login['$post']({ json })
+  const mutation = useMutation<ResponseType, Error, RequestType>({
+    mutationFn: async (data) => {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Login failed')
+      }
+      
       return await response.json()
     },
   })

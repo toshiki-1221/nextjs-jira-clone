@@ -1,19 +1,30 @@
 import { useMutation } from '@tanstack/react-query'
-import { InferRequestType, InferResponseType } from 'hono'
+import { z } from 'zod'
 
-import { client } from '@/lib/rpc'
+import { registerSchema } from '../types/schemas'
 
-type Responsetype = InferResponseType<
-  (typeof client.api.auth.register)['$post']
->
-type RequestType = InferRequestType<
-  (typeof client.api.auth.register)['$post']
->['json']
+type RequestType = z.infer<typeof registerSchema>
+type ResponseType = {
+  name: string
+  email: string
+  password: string
+}
 
 export const useRegister = () => {
-  const mutation = useMutation<Responsetype, Error, RequestType>({
-    mutationFn: async json => {
-      const response = await client.api.auth.register['$post']({ json })
+  const mutation = useMutation<ResponseType, Error, RequestType>({
+    mutationFn: async (data) => {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Registration failed')
+      }
+      
       return await response.json()
     },
   })
